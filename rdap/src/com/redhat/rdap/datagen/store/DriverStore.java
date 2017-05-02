@@ -87,7 +87,7 @@ public final class DriverStore implements DomainObjectStore {
     }
 
     public static Object getDropTableStatement() {
-        return String.format( DROP_MYSQL_TABLE_STMT, DriverStore.getTableName() );
+        return String.format( DROP_MYSQL_TABLE_STMT, TABLE_NAME );
     }
 
     public static String getTableName() {

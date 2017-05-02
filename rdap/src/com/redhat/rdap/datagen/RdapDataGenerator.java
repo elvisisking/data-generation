@@ -32,6 +32,7 @@ import com.redhat.rdap.datagen.store.DriverOffenseStore;
 import com.redhat.rdap.datagen.store.DriverStore;
 import com.redhat.rdap.datagen.store.RouteStore;
 import com.redhat.rdap.datagen.store.TrafficViolationStore;
+import com.redhat.rdap.datagen.store.TripDataStore;
 import com.redhat.rdap.datagen.store.WeatherDataStore;
 import com.redhat.rdap.datagen.util.RandomGenerator;
 
@@ -48,6 +49,7 @@ public final class RdapDataGenerator {
         WeatherData.PrecipType.RAIN,
         WeatherData.PrecipType.SNOW
     }; // @formatter:on
+    private static final String TRIP_DATA_OUTPUT_FILE = "generated/tripData.ddl";
     private static final String WEATHER_OUTPUT_FILE = "generated/weather.ddl";
     private static final String WEATHER_FILE_FOLDER = "generated/weather_data/";
     private static final String WEATHER_FILE_PREFIX = WEATHER_FILE_FOLDER + "weather-";
@@ -60,11 +62,12 @@ public final class RdapDataGenerator {
         final int firstDriverHistoryId = 100;
         final int firstOffenseId = 5000;
         final int firstRouteId = 6000;
+        final int firstTripDataId = 1;
         final int firstWeatherId = 7000;
         final Timestamp firstViolationDate = Timestamp.valueOf( LocalDateTime.of( 2000, 1, 1, 1, 1 ) );
         final Timestamp lastViolationDate = new Timestamp( Instant.now().toEpochMilli() );
         final int maxOffenses = 15;
-        final long start = System.currentTimeMillis();
+        final long startTime = System.currentTimeMillis();
 
         try {
             final RdapDataGenerator generator = new RdapDataGenerator( firstCarDataId,
@@ -75,39 +78,52 @@ public final class RdapDataGenerator {
                                                                        lastViolationDate,
                                                                        firstWeatherId,
                                                                        firstDriverHistoryId,
+                                                                       firstTripDataId,
                                                                        maxOffenses );
             generator.generateDdl();
 
             {
                 System.out.print( "Writing Postgres DDL file ..." );
+                final long start = System.currentTimeMillis();
                 final Path output = Paths.get( POSTGRES_OUTPUT_FILE );
                 Files.write( output, generator.getPostgresDdl().getBytes() );
-                System.out.println( "done" );
+                System.out.println( "done (" + ( System.currentTimeMillis() - start ) + " ms)" );
             }
 
             {
                 System.out.print( "Writing routes MySQL DDL file ..." );
+                final long start = System.currentTimeMillis();
                 final Path output = Paths.get( ROUTES_OUTPUT_FILE );
                 Files.write( output, generator.getRoutesDdl().getBytes() );
-                System.out.println( "done" );
+                System.out.println( "done (" + ( System.currentTimeMillis() - start ) + " ms)" );
             }
 
             {
                 System.out.print( "Writing weather data MySQL DDL file ..." );
+                final long start = System.currentTimeMillis();
                 final Path output = Paths.get( WEATHER_OUTPUT_FILE );
                 Files.write( output, generator.getWeatherDdl().getBytes() );
-                System.out.println( "done" );
+                System.out.println( "done (" + ( System.currentTimeMillis() - start ) + " ms)" );
             }
 
             {
                 System.out.print( "Writing driver history MySQL DDL file ..." );
+                final long start = System.currentTimeMillis();
                 final Path output = Paths.get( POSTGRES_HISTORY_OUTPUT_FILE );
                 Files.write( output, generator.getDriverHistoryDdl().getBytes() );
-                System.out.println( "done" );
+                System.out.println( "done (" + ( System.currentTimeMillis() - start ) + " ms)" );
             }
 
-            final long duration = ( System.currentTimeMillis() - start );
-            System.out.println( "Finished RDAP demo data generation in " + duration + " ms" );
+            {
+                System.out.print( "Writing trip data MySQL DDL file ..." );
+                final long start = System.currentTimeMillis();
+                final Path output = Paths.get( TRIP_DATA_OUTPUT_FILE );
+                Files.write( output, generator.getTripDataDdl().getBytes() );
+                System.out.println( "done (" + ( System.currentTimeMillis() - start ) + " ms)" );
+            }
+
+            final long duration = ( System.currentTimeMillis() - startTime );
+            System.out.println( "\n*** Finished RDAP demo data generation in " + duration + " ms" );
         } catch ( final Exception e ) {
             e.printStackTrace();
         }
@@ -130,9 +146,12 @@ public final class RdapDataGenerator {
     private int routeId;
     private final List< Route > routes = new ArrayList<>();
     private final StringBuilder routesDdl = new StringBuilder();
+    private final StringBuilder tripDataDdl = new StringBuilder();
+    private final TripDataStore tripDataStore;
     private final Map< String, List< String > > usedNames = new HashMap<>();
     private final Set< String > usedAddresses = new HashSet<>();
     private final Set< String > usedPhones = new HashSet<>();
+    private List< WeatherData > weatherData;
     private final StringBuilder weatherDdl = new StringBuilder();
 
     RdapDataGenerator( final int firstCarDataId,
@@ -143,6 +162,7 @@ public final class RdapDataGenerator {
                        final Timestamp lastOffenseDate,
                        final int firstWeatherId,
                        final int firstDriverHistoryId,
+                       final int firstTripDataId,
                        final int maxOffenses ) throws Exception {
         this.carDataStore = new CarDataStore( firstCarDataId );
         this.driverId = firstDriverId;
@@ -152,6 +172,7 @@ public final class RdapDataGenerator {
         this.lastOffenseDate = lastOffenseDate;
         this.firstWeatherId = firstWeatherId;
         this.driverHistoryStore = new DriverHistoryStore( firstDriverHistoryId );
+        this.tripDataStore = new TripDataStore( firstTripDataId );
         this.maxOffenses = maxOffenses;
     }
 
@@ -191,77 +212,87 @@ public final class RdapDataGenerator {
     }
 
     private void generateDdl() throws Exception {
-        System.out.print( "Generating drop Postgres tables ... " );
-        writePostgresDropTables( this.postgresDdl );
-        System.out.println( "done." );
+        {
+            System.out.print( "Generating drop and create Postgres table statements ... " );
+            final long start = System.currentTimeMillis();
+            writePostgresDropTables( this.postgresDdl );
+            writePostgresCreateTables( this.postgresDdl );
+            System.out.println( "done (" + ( System.currentTimeMillis() - start ) + " ms)" );
+        }
 
-        System.out.print( "Generating create Postgres tables ... " );
-        writePostgresCreateTables( this.postgresDdl );
-        System.out.println( "done." );
+        {
+            System.out.print( "Generating Postgres insert traffic violation DDL statements ... " );
+            final long start = System.currentTimeMillis();
+            this.postgresDdl.append( TrafficViolationStore
+                            .getInsertStatements( RdapDataProvider.getTrafficViolations() ) );
+            System.out.println( "done (" + ( System.currentTimeMillis() - start ) + " ms)" );
+        }
 
-        System.out.print( "Generating drop Routes MySQL table ... " );
-        this.routesDdl.append( RouteStore.getDropTableStatement() ).append( "\n\n" );
-        System.out.println( "done." );
-
-        System.out.print( "Generating create Routes MySQL table ... " );
-        this.routesDdl.append( RouteStore.getCreateTableStatement() ).append( "\n\n" );
-        System.out.println( "done." );
-
-        System.out.print( "Generating drop Weather MySQL table ... " );
-        this.weatherDdl.append( WeatherDataStore.getDropTableStatement() ).append( "\n\n" );
-        System.out.println( "done." );
-
-        System.out.print( "Generating create Weather MySQL table ... " );
-        this.weatherDdl.append( WeatherDataStore.getCreateTableStatement() ).append( "\n\n" );
-        System.out.println( "done." );
-
-        System.out.print( "Generating Postgres insert traffic violation DDL statements ... " );
-        this.postgresDdl.append( TrafficViolationStore.getInsertStatements( RdapDataProvider.getTrafficViolations() ) );
-        System.out.println( "done." );
-
-        System.out.println( "Processing car data files" );
         processCarDataFiles();
 
-        System.out.print( "Generating Postgres insert car data DDL statements ... " );
-        this.postgresDdl.append( this.carDataStore.getInsertStatements( this.carData ) );
-        System.out.println( "done." );
+        {
+            System.out.print( "Generating Postgres insert car data DDL statements ... " );
+            final long start = System.currentTimeMillis();
+            this.postgresDdl.append( this.carDataStore.getInsertStatements( this.carData ) );
+            System.out.println( "done (" + ( System.currentTimeMillis() - start ) + " ms)" );
+        }
 
-        System.out.print( "Generating MySQL insert route DDL statements ... " );
-        this.routesDdl.append( RouteStore.getInsertStatements( this.routes ) );
-        System.out.println( "done." );
+        {
+            System.out.print( "Generating drop, create, and insert route MySQL DDL statements ... " );
+            final long start = System.currentTimeMillis();
+            this.routesDdl.append( RouteStore.getDropTableStatement() ).append( "\n\n" );
+            this.routesDdl.append( RouteStore.getCreateTableStatement() ).append( "\n\n" );
+            this.routesDdl.append( RouteStore.getInsertStatements( this.routes ) );
+            this.routesDdl.append( "\n\ncommit;\n\n" );
+            System.out.println( "done (" + ( System.currentTimeMillis() - start ) + " ms)" );
+        }
 
-        System.out.print( "Generating MySQL insert weather DDL statements ... " );
-        this.weatherDdl.append( WeatherDataStore.getInsertStatements( generateWeatherData() ) );
-        System.out.println( "done." );
+        {
+            System.out.print( "Generating drop, create, and insert weather MySQL DDL statements ... " );
+            final long start = System.currentTimeMillis();
+            this.weatherDdl.append( WeatherDataStore.getDropTableStatement() ).append( "\n\n" );
+            this.weatherDdl.append( WeatherDataStore.getCreateTableStatement() ).append( "\n\n" );
+            this.weatherDdl.append( WeatherDataStore.getInsertStatements( generateWeatherData() ) );
+            this.weatherDdl.append( "\n\ncommit;\n\n" );
+            System.out.println( "done (" + ( System.currentTimeMillis() - start ) + " ms)" );
+        }
 
-        System.out.print( "Generating Postgres insert driver DDL statements... " );
-        this.postgresDdl.append( DriverStore.getInsertStatements( this.drivers.values() ) );
-        System.out.println( "done." );
+        {
+            System.out.print( "Generating Postgres insert driver DDL statements... " );
+            final long start = System.currentTimeMillis();
+            this.postgresDdl.append( DriverStore.getInsertStatements( this.drivers.values() ) );
+            System.out.println( "done (" + ( System.currentTimeMillis() - start ) + " ms)" );
+        }
 
-        System.out.print( "Generating Postgres insert driver offense DDL statements ... " );
-        this.postgresDdl.append( DriverOffenseStore.getInsertStatements( getDriverOffenses() ) );
-        System.out.println( "done." );
+        {
+            System.out.print( "Generating Postgres insert driver offense DDL statements ... " );
+            final long start = System.currentTimeMillis();
+            this.postgresDdl.append( DriverOffenseStore.getInsertStatements( getDriverOffenses() ) );
+            this.postgresDdl.append( "\n\ncommit;\n\n" );
+            System.out.println( "done (" + ( System.currentTimeMillis() - start ) + " ms)" );
+        }
 
-        System.out.print( "Generating commit statement for Postgres ... " );
-        this.postgresDdl.append( "\n\ncommit;\n\n" );
-        System.out.println( "done." );
+        {
+            System.out.print( "Generating drop, create, and insert driver history Postgres DDL statements ... " );
+            final long start = System.currentTimeMillis();
+            this.driverHistoryDdl.append( DriverHistoryStore.getDropTableStatement() ).append( "\n\n" );
+            this.driverHistoryDdl.append( DriverHistoryStore.getCreateTableStatement() ).append( "\n\n" );
+            this.driverHistoryDdl.append( this.driverHistoryStore.getInsertStatements( this.drivers.values(),
+                                                                                       RdapDataProvider.getTrafficViolations(),
+                                                                                       this.driverOffenses ) );
+            this.driverHistoryDdl.append( "\n\ncommit;\n\n" );
+            System.out.println( "done (" + ( System.currentTimeMillis() - start ) + " ms)" );
+        }
 
-        System.out.print( "Generating commit statement for Routes MySQL ... " );
-        this.routesDdl.append( "\n\ncommit;\n\n" );
-        System.out.println( "done." );
-
-        System.out.print( "Generating commit statement for Weather MySQL ... " );
-        this.weatherDdl.append( "\n\ncommit;\n\n" );
-        System.out.println( "done." );
-
-        System.out.print( "Generating Postgres driver history DDL statements ... " );
-        this.driverHistoryDdl.append( DriverHistoryStore.getDropTableStatement() ).append( "\n\n" );
-        this.driverHistoryDdl.append( DriverHistoryStore.getCreateTableStatement() ).append( "\n\n" );
-        this.driverHistoryDdl.append( this.driverHistoryStore.getInsertStatements( this.drivers.values(), 
-                                                                                   RdapDataProvider.getTrafficViolations(), 
-                                                                                   this.driverOffenses ) );
-        this.driverHistoryDdl.append( "\n\ncommit;\n\n" );
-        System.out.println( "done." );
+        {
+            System.out.print( "Generating drop, create, and insert trip data Postgres DDL statements ... " );
+            final long start = System.currentTimeMillis();
+            this.tripDataDdl.append( TripDataStore.getDropTableStatement() ).append( "\n\n" );
+            this.tripDataDdl.append( TripDataStore.getCreateTableStatement() ).append( "\n\n" );
+            this.tripDataDdl.append( this.tripDataStore.getInsertStatements( this.carData, this.weatherData ) );
+            this.tripDataDdl.append( "\n\ncommit;\n\n" );
+            System.out.println( "done (" + ( System.currentTimeMillis() - start ) + " ms)" );
+        }
     }
 
     private Driver generateDriver( final String driversLicense,
@@ -304,27 +335,30 @@ public final class RdapDataGenerator {
     }
 
     private List< WeatherData > generateWeatherData() throws Exception {
-        // delete old weather data files
-        try {
-            final Path dir = Paths.get( WEATHER_FILE_FOLDER );
-            
-            if ( Files.exists( dir ) ) {
-                Files.walk( dir, new FileVisitOption[ 0 ] ).filter( p -> p != dir ).map( Path::toFile ).forEach( File::delete );
-            } else {
-                Files.createDirectory( dir );
+        if ( this.weatherData == null ) {
+            // delete old weather data files
+            try {
+                final Path dir = Paths.get( WEATHER_FILE_FOLDER );
+
+                if ( Files.exists( dir ) ) {
+                    Files.walk( dir, new FileVisitOption[ 0 ] ).filter( p -> p != dir ).map( Path::toFile )
+                                    .forEach( File::delete );
+                } else {
+                    Files.createDirectory( dir );
+                }
+            } catch ( final Exception e ) {
+                System.err.println( "*** Error deleting old generated weather data files ***" );
             }
-        } catch ( final Exception e ) {
-            System.err.println( "*** Error deleting old generated weather data files ***" );
+
+            this.weatherData = new ArrayList<>();
+
+            for ( final Route route : this.routes ) {
+                final List< CarData > dataPoints = this.carData.get( route );
+                this.weatherData.addAll( createtWeatherData( dataPoints, route ) );
+            }
         }
 
-        final List< WeatherData > weatherData = new ArrayList<>();
-
-        for ( final Route route : this.routes ) {
-            final List< CarData > dataPoints = this.carData.get( route );
-            weatherData.addAll( createtWeatherData( dataPoints, route ) );
-        }
-
-        return weatherData;
+        return this.weatherData;
     }
 
     private String getDriverHistoryDdl() {
@@ -335,11 +369,11 @@ public final class RdapDataGenerator {
         if ( this.driverOffenses == null ) {
             final List< DriverOffense > offenses = new ArrayList<>();
             int id = this.firstOffenseId;
-    
+
             for ( final Driver driver : this.drivers.values() ) {
                 final int driverId = driver.getId();
                 final int numOffenses = this.random.next( 0, this.maxOffenses );
-    
+
                 for ( int i = 0; i < numOffenses; ++i ) {
                     final TrafficViolation violation = nextViolation();
                     final DriverOffense offense = new DriverOffense( id++,
@@ -350,10 +384,10 @@ public final class RdapDataGenerator {
                     offenses.add( offense );
                 }
             }
-    
+
             this.driverOffenses = Collections.unmodifiableList( offenses );
         }
-        
+
         return this.driverOffenses;
     }
 
@@ -363,6 +397,10 @@ public final class RdapDataGenerator {
 
     private String getRoutesDdl() {
         return this.routesDdl.toString();
+    }
+
+    private String getTripDataDdl() {
+        return this.tripDataDdl.toString();
     }
 
     private String getWeatherDdl() {
@@ -419,39 +457,50 @@ public final class RdapDataGenerator {
     }
 
     private void processCarDataFiles() throws Exception {
+        System.out.println( "Processing car data files ..." );
+        final long startTime = System.currentTimeMillis();
         final Path carDataFolder = Paths.get( RdapDataProvider.CAR_DATA_FOLDER );
+        int i = 0;
 
         try ( final DirectoryStream< Path > stream = Files.newDirectoryStream( carDataFolder ) ) {
             for ( final Path path : stream ) {
+                final long start = System.currentTimeMillis();
                 final File carDataFile = path.toFile();
                 final String fileName = carDataFile.getName();
-                System.out.println( "\t>>> car data file '" + carDataFile.getName() + '\'' );
+                System.out.print( "\t- car data file '" + carDataFile.getName() + "': " );
 
                 final String name = fileName.substring( CAR_DATA_FILE_PREFIX.length(),
                                                         ( fileName.length() - CAR_DATA_FILE_EXT.length() ) );
-                System.out.print( "\t\t- creating car data ... " );
                 final List< CarData > carData = this.carDataStore.getCarData( carDataFile );
-                System.out.println( "done" );
+                System.out.print( "created car data" );
 
                 // generate a new driver if necessary
                 final CarData data = carData.get( 0 );
-                final String driversLicense = data.getDriversLicNo();
+                final String driversLicense = data.getDriversLicNumber();
                 Driver driver = this.drivers.get( driversLicense );
 
                 if ( driver == null ) {
-                    System.out.print( "\t\t- creating driver for license '" + driversLicense + "' ... " );
                     driver = generateDriver( driversLicense, data.getVin() );
-                    System.out.println( "done" );
+                    System.out.print( ", created driver" );
                 }
 
                 // generate route
-                System.out.print( "\t\t- creating route ... " );
                 final Route route = new Route( this.routeId++, name, driver.getId() );
                 this.routes.add( route );
                 this.carData.put( route, carData );
-                System.out.println( "done" );
+                System.out.print( ", created route" );
+
+                // finished
+                System.out.println( ", done (" + ( System.currentTimeMillis() - start ) + " ms)" );
+                ++i;
             }
         }
+
+        System.out.println( "\t- done processing "
+                            + i
+                            + " files ("
+                            + ( System.currentTimeMillis() - startTime )
+                            + " ms)" );
     }
 
     private void writePostgresCreateTables( final StringBuilder builder ) {

@@ -26,7 +26,7 @@ public final class RouteStore implements DomainObjectStore {
                                                     + "\t" + Column.ID + " INT NOT NULL PRIMARY KEY,\n"
                                                     + "\t" + Column.DRIVER_ID + " INT NOT NULL,\n"
                                                     + "\t" + Column.NAME + " VARCHAR(255) NOT NULL\n"
-                                                    + " );"; // @formatter:on
+                                                    + ");"; // @formatter:on
 
     private static final String INSERT_STMT = "INSERT INTO "
                                               + TABLE_NAME
@@ -41,7 +41,7 @@ public final class RouteStore implements DomainObjectStore {
     }
 
     public static String getDropTableStatement() {
-        return String.format( DROP_MYSQL_TABLE_STMT, RouteStore.getTableName() );
+        return String.format( DROP_MYSQL_TABLE_STMT, TABLE_NAME );
     }
 
     public static String getInsertStatements( final List< Route > routes ) throws Exception {

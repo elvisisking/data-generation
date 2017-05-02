@@ -98,7 +98,7 @@ public final class CarDataStore implements DomainObjectStore {
     }
 
     public static String getDropTableStatement() {
-        return String.format( DROP_MYSQL_TABLE_STMT, CarDataStore.getTableName() );
+        return String.format( DROP_MYSQL_TABLE_STMT, TABLE_NAME );
     }
 
     public static String getTableName() {
@@ -173,12 +173,12 @@ public final class CarDataStore implements DomainObjectStore {
                                                      toDdl( data.getLatitude() ),
                                                      toDdl( data.getLongitude() ),
                                                      toDdl( data.getBarometricPressure() ),
-                                                     toDdl( data.getDistanceWithMIL() ),
+                                                     toDdl( data.getDistanceWithMil() ),
                                                      toDdl( data.getDtcCount() ),
                                                      toDdl( data.getEngineRunTime() ),
                                                      toDdl( data.getRpm() ),
                                                      toDdl( data.getSpeed() ),
-                                                     toDdl( data.getThrottlePos() ) );
+                                                     toDdl( data.getThrottlePosition() ) );
                 ddl.append( insert ).append( '\n' );
             }
         }

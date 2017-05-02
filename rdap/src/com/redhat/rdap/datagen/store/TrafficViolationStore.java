@@ -118,7 +118,7 @@ public final class TrafficViolationStore implements DomainObjectStore {
     }
 
     public static String getDropTableStatement() {
-        return String.format( DROP_MYSQL_TABLE_STMT, TrafficViolationStore.getTableName() );
+        return String.format( DROP_MYSQL_TABLE_STMT, TABLE_NAME );
     }
 
     public static String getInsertStatements( final List< TrafficViolation > violations ) throws Exception {

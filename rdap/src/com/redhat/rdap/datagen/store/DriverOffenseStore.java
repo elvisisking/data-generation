@@ -63,7 +63,7 @@ public final class DriverOffenseStore implements DomainObjectStore {
     }
 
     public static String getDropTableStatement() {
-        return String.format( DROP_MYSQL_TABLE_STMT, DriverOffenseStore.getTableName() );
+        return String.format( DROP_MYSQL_TABLE_STMT, TABLE_NAME );
     }
 
     public static String getInsertStatements( final List< DriverOffense > offenses ) throws Exception {

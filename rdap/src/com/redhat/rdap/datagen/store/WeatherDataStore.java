@@ -43,7 +43,7 @@ public final class WeatherDataStore implements DomainObjectStore {
                                                     + "\t" + Column.LONGITUDE + " DECIMAL NOT NULL,\n"
                                                     + "\t" + Column.PRECIP_INTENSITY + " DECIMAL(4,2) NOT NULL,\n"
                                                     + "\t" + Column.WIND_SPEED + " INT NOT NULL\n"
-                                                    + " );"; // @formatter:on
+                                                    + ");"; // @formatter:on
 
     private static final String INSERT_STMT = "INSERT INTO "
                                               + TABLE_NAME
@@ -56,7 +56,7 @@ public final class WeatherDataStore implements DomainObjectStore {
     }
 
     public static String getDropTableStatement() {
-        return String.format( DROP_MYSQL_TABLE_STMT, WeatherDataStore.getTableName() );
+        return String.format( DROP_MYSQL_TABLE_STMT, TABLE_NAME );
     }
 
     public static String getInsertStatements( final List< WeatherData > weatherData ) throws Exception {

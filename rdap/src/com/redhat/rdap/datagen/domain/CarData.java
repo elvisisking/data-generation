@@ -2,7 +2,7 @@ package com.redhat.rdap.datagen.domain;
 
 import java.sql.Timestamp;
 
-public final class CarData implements Comparable< CarData > {
+public final class CarData {
 
     private final double barometricPressure;
     private final Timestamp date;
@@ -33,7 +33,7 @@ public final class CarData implements Comparable< CarData > {
                     final double longitude ) {
         this.id = id;
         this.driversLicNo = driversLicNo;
-        this.vin = vin;
+        this.vin = ( ( vin == null ) || vin.isEmpty() ) ? "** unknown **" : vin;
         this.date = date;
         this.dtcCount = dtcCount;
         this.distanceWithMil = distanceWithMIL;
@@ -46,11 +46,6 @@ public final class CarData implements Comparable< CarData > {
         this.longitude = longitude;
     }
 
-    @Override
-    public int compareTo( final CarData that ) {
-        return Integer.compare( this.id, that.id );
-    }
-
     public double getBarometricPressure() {
         return this.barometricPressure;
     }
@@ -59,11 +54,11 @@ public final class CarData implements Comparable< CarData > {
         return this.date;
     }
 
-    public double getDistanceWithMIL() {
+    public double getDistanceWithMil() {
         return this.distanceWithMil;
     }
 
-    public String getDriversLicNo() {
+    public String getDriversLicNumber() {
         return this.driversLicNo;
     }
 
@@ -75,12 +70,12 @@ public final class CarData implements Comparable< CarData > {
         return this.engineRunTime;
     }
 
-    public double getLatitude() {
-        return this.latitude;
-    }
-
     public int getId() {
         return this.id;
+    }
+
+    public double getLatitude() {
+        return this.latitude;
     }
 
     public double getLongitude() {
@@ -95,7 +90,7 @@ public final class CarData implements Comparable< CarData > {
         return this.speed;
     }
 
-    public double getThrottlePos() {
+    public double getThrottlePosition() {
         return this.throttlePos;
     }
 
