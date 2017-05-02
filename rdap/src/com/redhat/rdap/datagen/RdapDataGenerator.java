@@ -22,9 +22,9 @@ import com.redhat.rdap.datagen.domain.CarData;
 import com.redhat.rdap.datagen.domain.City;
 import com.redhat.rdap.datagen.domain.Driver;
 import com.redhat.rdap.datagen.domain.DriverOffense;
-import com.redhat.rdap.datagen.domain.TrafficViolation;
 import com.redhat.rdap.datagen.domain.Route;
 import com.redhat.rdap.datagen.domain.State;
+import com.redhat.rdap.datagen.domain.TrafficViolation;
 import com.redhat.rdap.datagen.domain.WeatherData;
 import com.redhat.rdap.datagen.store.CarDataStore;
 import com.redhat.rdap.datagen.store.DriverHistoryStore;
@@ -37,6 +37,9 @@ import com.redhat.rdap.datagen.store.WeatherDataStore;
 import com.redhat.rdap.datagen.util.RandomGenerator;
 
 public final class RdapDataGenerator {
+
+    private static final String[] BART = new String[] { "Bart", "Simpson" };
+    private static final String[] LISA = new String[] { "Lisa", BART[ 1 ] };
 
     private static final String CAR_DATA_FILE_PREFIX = "OBD-";
     private static final String CAR_DATA_FILE_EXT = ".txt";
@@ -66,6 +69,8 @@ public final class RdapDataGenerator {
         final int firstWeatherId = 7000;
         final Timestamp firstViolationDate = Timestamp.valueOf( LocalDateTime.of( 2000, 1, 1, 1, 1 ) );
         final Timestamp lastViolationDate = new Timestamp( Instant.now().toEpochMilli() );
+        final int numBartOffenses = 100;
+        final int numLisaOffenses = 1;
         final int maxOffenses = 15;
         final long startTime = System.currentTimeMillis();
 
@@ -79,7 +84,9 @@ public final class RdapDataGenerator {
                                                                        firstWeatherId,
                                                                        firstDriverHistoryId,
                                                                        firstTripDataId,
-                                                                       maxOffenses );
+                                                                       maxOffenses,
+                                                                       numBartOffenses,
+                                                                       numLisaOffenses );
             generator.generateDdl();
 
             {
@@ -141,6 +148,8 @@ public final class RdapDataGenerator {
     private final int firstWeatherId;
     private final Timestamp lastOffenseDate;
     private final int maxOffenses;
+    private final int numBartOffenses;
+    private final int numLisaOffenses;
     private final StringBuilder postgresDdl = new StringBuilder();
     private final RandomGenerator random = new RandomGenerator();
     private int routeId;
@@ -163,7 +172,9 @@ public final class RdapDataGenerator {
                        final int firstWeatherId,
                        final int firstDriverHistoryId,
                        final int firstTripDataId,
-                       final int maxOffenses ) throws Exception {
+                       final int maxOffenses,
+                       final int numBartOffenses,
+                       final int numLisaOffenses ) throws Exception {
         this.carDataStore = new CarDataStore( firstCarDataId );
         this.driverId = firstDriverId;
         this.routeId = firstRouteId;
@@ -174,6 +185,8 @@ public final class RdapDataGenerator {
         this.driverHistoryStore = new DriverHistoryStore( firstDriverHistoryId );
         this.tripDataStore = new TripDataStore( firstTripDataId );
         this.maxOffenses = maxOffenses;
+        this.numBartOffenses = numBartOffenses;
+        this.numLisaOffenses = numLisaOffenses;
     }
 
     private List< WeatherData > createtWeatherData( final List< CarData > carData,
@@ -372,7 +385,7 @@ public final class RdapDataGenerator {
 
             for ( final Driver driver : this.drivers.values() ) {
                 final int driverId = driver.getId();
-                final int numOffenses = this.random.next( 0, this.maxOffenses );
+                final int numOffenses = nextNumberOfDriverOffenses( driver );
 
                 for ( int i = 0; i < numOffenses; ++i ) {
                     final TrafficViolation violation = nextViolation();
@@ -423,12 +436,36 @@ public final class RdapDataGenerator {
     }
 
     private String nextFirstName() throws Exception {
+        if ( this.drivers.isEmpty() ) {
+            return BART[ 0 ];
+        }
+
+        if ( this.drivers.size() == 1 ) {
+            return LISA[ 0 ];
+        }
+
         return this.random.next( this.random.next() ? RdapDataProvider.getMaleNames()
                                                     : RdapDataProvider.getFemaleNames() );
     }
 
     private String nextLastName() throws Exception {
+        if ( this.drivers.size() < 3 ) {
+            return BART[ 1 ];
+        }
+
         return this.random.next( RdapDataProvider.getLastNames() );
+    }
+
+    private int nextNumberOfDriverOffenses( final Driver driver ) {
+        if ( BART[ 0 ].equals( driver.getFirstName() ) && BART[ 1 ].equals( driver.getLastName() ) ) {
+            return this.numBartOffenses;
+        }
+
+        if ( LISA[ 0 ].equals( driver.getFirstName() ) && LISA[ 1 ].equals( driver.getLastName() ) ) {
+            return this.numLisaOffenses;
+        }
+
+        return this.random.next( 0, this.maxOffenses );
     }
 
     private String nextPhoneNumber( final State state ) throws Exception {
