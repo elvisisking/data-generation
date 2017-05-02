@@ -85,7 +85,7 @@ public final class CarDataStore implements DomainObjectStore {
                                                     + "\t\"" + Column.SPEED + "\" DECIMAL NOT NULL,\n"
                                                     + "\t\"" + Column.THROTTLE_POSITION + "\" DECIMAL NOT NULL,\n"
                                                     + "\tPRIMARY KEY ( \"" + Column.ID + "\" )\n"
-                                                    + " );"; // @formatter:on
+                                                    + ");"; // @formatter:on
 
     private static final String INSERT_STMT = "INSERT INTO \""
                                               + TABLE_NAME
@@ -95,6 +95,10 @@ public final class CarDataStore implements DomainObjectStore {
 
     public static String getCreateTableStatement() {
         return CREATE_TABLE_STMT;
+    }
+
+    public static String getDropTableStatement() {
+        return String.format( DROP_MYSQL_TABLE_STMT, CarDataStore.getTableName() );
     }
 
     public static String getTableName() {

@@ -10,6 +10,8 @@ import java.util.List;
 
 public interface DomainObjectStore {
 
+    String DROP_MYSQL_TABLE_STMT = "DROP TABLE IF EXISTS %s CASCADE;";
+    String DROP_POSTGRES_TABLE_STMT = "DROP TABLE IF EXISTS \"%s\" CASCADE;";
     SimpleDateFormat DATE_FORMATTER = new SimpleDateFormat( "yyyy-MM-dd HH:mm:ss.SSS" );
 
     default List< String > load( final String fileName ) throws Exception {

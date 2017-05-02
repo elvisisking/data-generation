@@ -50,7 +50,7 @@ public final class DriverStore implements DomainObjectStore {
                                                     + "\t\"" + Column.LICENSE_NUMBER + "\" TEXT NOT NULL,\n"
                                                     + "\t\"" + Column.VIN + "\" TEXT NOT NULL,\n"
                                                     + "\tPRIMARY KEY ( \"" + Column.ID + "\" )\n"
-                                                    + " );"; // @formatter:on
+                                                    + ");"; // @formatter:on
 
     private static final String INSERT_STMT = "INSERT INTO \""
                                               + TABLE_NAME
@@ -84,6 +84,10 @@ public final class DriverStore implements DomainObjectStore {
         }
 
         return ddl.toString();
+    }
+
+    public static Object getDropTableStatement() {
+        return String.format( DROP_MYSQL_TABLE_STMT, DriverStore.getTableName() );
     }
 
     public static String getTableName() {

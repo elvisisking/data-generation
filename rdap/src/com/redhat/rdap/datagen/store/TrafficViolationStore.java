@@ -82,7 +82,7 @@ public final class TrafficViolationStore implements DomainObjectStore {
                                                     + "\t\"" + Column.DESCRIPTION + "\" TEXT NOT NULL,\n"
                                                     + "\t\"" + Column.SEVERITY + "\" INTEGER NOT NULL,\n"
                                                     + "\tPRIMARY KEY ( \"" + Column.ID + "\" )\n"
-                                                    + " );"; // @formatter:on
+                                                    + ");"; // @formatter:on
 
     private static final String INSERT_STMT = "INSERT INTO \""
                                               + TABLE_NAME
@@ -115,6 +115,10 @@ public final class TrafficViolationStore implements DomainObjectStore {
 
     public static String getCreateTableStatement() {
         return CREATE_TABLE_STMT;
+    }
+
+    public static String getDropTableStatement() {
+        return String.format( DROP_MYSQL_TABLE_STMT, TrafficViolationStore.getTableName() );
     }
 
     public static String getInsertStatements( final List< TrafficViolation > violations ) throws Exception {

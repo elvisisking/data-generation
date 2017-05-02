@@ -48,7 +48,7 @@ public final class DriverOffenseStore implements DomainObjectStore {
                                                     + "\tPRIMARY KEY ( \"" + Column.ID + "\" ),\n"
                                                     + DRIVER_FK
                                                     + VIOLATION_FK
-                                                    + " );"; // @formatter:on
+                                                    + ");"; // @formatter:on
 
     private static final String INSERT_STMT = "INSERT INTO \""
                                               + TABLE_NAME
@@ -60,6 +60,10 @@ public final class DriverOffenseStore implements DomainObjectStore {
 
     public static String getCreateTableStatement() {
         return CREATE_TABLE_STMT;
+    }
+
+    public static String getDropTableStatement() {
+        return String.format( DROP_MYSQL_TABLE_STMT, DriverOffenseStore.getTableName() );
     }
 
     public static String getInsertStatements( final List< DriverOffense > offenses ) throws Exception {

@@ -40,6 +40,10 @@ public final class RouteStore implements DomainObjectStore {
         return CREATE_TABLE_STMT;
     }
 
+    public static String getDropTableStatement() {
+        return String.format( DROP_MYSQL_TABLE_STMT, RouteStore.getTableName() );
+    }
+
     public static String getInsertStatements( final List< Route > routes ) throws Exception {
         final StringBuilder ddl = new StringBuilder();
         ddl.append( "\n--" ).append( TABLE_NAME ).append( "\n\n" );
