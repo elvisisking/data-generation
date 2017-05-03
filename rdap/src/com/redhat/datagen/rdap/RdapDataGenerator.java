@@ -28,6 +28,7 @@ import com.redhat.datagen.rdap.domain.TrafficViolation;
 import com.redhat.datagen.rdap.domain.WeatherData;
 import com.redhat.datagen.rdap.domain.WeatherScenario;
 import com.redhat.datagen.rdap.store.CarDataStore;
+import com.redhat.datagen.rdap.store.DomainObjectStore;
 import com.redhat.datagen.rdap.store.DriverHistoryStore;
 import com.redhat.datagen.rdap.store.DriverOffenseStore;
 import com.redhat.datagen.rdap.store.DriverStore;
@@ -233,18 +234,17 @@ public final class RdapDataGenerator {
         processCarDataFiles();
 
         {
-            System.out.print( "Generating Postgres insert car data DDL statements ... " );
+            System.out.print( "Generating drop, create, and insert route and car data MySQL DDL statements ... " );
             final long start = System.currentTimeMillis();
-            this.postgresDdl.append( this.carDataStore.getInsertStatements( this.carData ) );
-            System.out.println( "done (" + ( System.currentTimeMillis() - start ) + " ms)" );
-        }
-
-        {
-            System.out.print( "Generating drop, create, and insert route MySQL DDL statements ... " );
-            final long start = System.currentTimeMillis();
+            this.routesDdl.append( CarDataStore.getDropTableStatement( DomainObjectStore.Database.MYSQL ) )
+                            .append( '\n' );
             this.routesDdl.append( RouteStore.getDropTableStatement() ).append( "\n\n" );
             this.routesDdl.append( RouteStore.getCreateTableStatement() ).append( "\n\n" );
+            this.routesDdl.append( CarDataStore.getCreateTableStatement( DomainObjectStore.Database.MYSQL ) )
+                            .append( "\n\n" );
             this.routesDdl.append( RouteStore.getInsertStatements( this.routes ) );
+            this.routesDdl.append( this.carDataStore.getInsertStatements( DomainObjectStore.Database.MYSQL,
+                                                                          this.carData ) );
             this.routesDdl.append( "\n\ncommit;\n\n" );
             System.out.println( "done (" + ( System.currentTimeMillis() - start ) + " ms)" );
         }
@@ -531,13 +531,11 @@ public final class RdapDataGenerator {
     private void writePostgresCreateTables( final StringBuilder builder ) {
         builder.append( DriverStore.getCreateTableStatement() ).append( "\n\n" );
         builder.append( TrafficViolationStore.getCreateTableStatement() ).append( "\n\n" );
-        builder.append( CarDataStore.getCreateTableStatement() ).append( "\n\n" );
         builder.append( DriverOffenseStore.getCreateTableStatement() ).append( "\n\n" );
     }
 
     private void writePostgresDropTables( final StringBuilder builder ) {
         builder.append( DriverOffenseStore.getDropTableStatement() ).append( '\n' );
-        builder.append( CarDataStore.getDropTableStatement() ).append( '\n' );
         builder.append( TrafficViolationStore.getDropTableStatement() ).append( '\n' );
         builder.append( DriverStore.getDropTableStatement() ).append( "\n\n" );
     }
