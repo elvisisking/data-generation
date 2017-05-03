@@ -56,8 +56,6 @@ public final class DriverOffenseStore implements DomainObjectStore {
                                               + COLUMNS
                                               + ") VALUES ( '%s', '%s', '%s', '%s' );";
 
-    private static final DriverOffenseStore SHARED = new DriverOffenseStore();
-
     public static String getCreateTableStatement() {
         return CREATE_TABLE_STMT;
     }
@@ -72,10 +70,10 @@ public final class DriverOffenseStore implements DomainObjectStore {
 
         for ( final DriverOffense offense : offenses ) {
             final String insert = String.format( INSERT_STMT,
-                                                 SHARED.toDdl( offense.getId() ),
-                                                 SHARED.toDdl( DATE_FORMATTER.format( offense.getDate() ) ),
-                                                 SHARED.toDdl( offense.getDriverId() ),
-                                                 SHARED.toDdl( offense.getViolationId() ) );
+                                                 DomainObjectStore.toDdl( offense.getId() ),
+                                                 DomainObjectStore.toDdl( DATE_FORMATTER.format( offense.getDate() ) ),
+                                                 DomainObjectStore.toDdl( offense.getDriverId() ),
+                                                 DomainObjectStore.toDdl( offense.getViolationId() ) );
             ddl.append( insert ).append( '\n' );
         }
 

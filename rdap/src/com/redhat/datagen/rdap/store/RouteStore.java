@@ -34,8 +34,6 @@ public final class RouteStore implements DomainObjectStore {
                                               + COLUMNS
                                               + ") VALUES ( %s, %s, '%s' );";
 
-    private static final RouteStore SHARED = new RouteStore();
-
     public static String getCreateTableStatement() {
         return CREATE_TABLE_STMT;
     }
@@ -50,9 +48,9 @@ public final class RouteStore implements DomainObjectStore {
 
         for ( final Route route : routes ) {
             final String insert = String.format( INSERT_STMT,
-                                                 SHARED.toDdl( route.getId() ),
-                                                 SHARED.toDdl( route.getDriverId() ),
-                                                 SHARED.toDdl( route.getName() ) );
+                                                 DomainObjectStore.toDdl( route.getId() ),
+                                                 DomainObjectStore.toDdl( route.getDriverId() ),
+                                                 DomainObjectStore.toDdl( route.getName() ) );
             ddl.append( insert ).append( '\n' );
         }
 

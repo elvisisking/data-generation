@@ -84,7 +84,7 @@ public class TripDataStore implements DomainObjectStore {
                                               + " ( "
                                               + COLUMNS
                                               + ") VALUES ( "
-                                              + "%s, %s, '%s', %s, %s, %s, %s, '%s', %s, %s, %s, %s, %s, '%s', %s, %s, %s"
+                                              + "%s, %s, '%s', %s, %s, %s, %s, '%s', %s, %s, %s, %s, %s, '%s', '%s', %s, %s"
                                               + " );";
 
     public static String getCreateTableStatement() {
@@ -111,29 +111,29 @@ public class TripDataStore implements DomainObjectStore {
         final PrecipType precipType = weatherData.getPrecipType();
         final double precipIntensity = weatherData.getPrecipIntensity();
         final int windSpeed = weatherData.getWindSpeed();
-        
+
         for ( final CarData carData : carDataPoints ) {
-            if ( carData.getLatitude() == weatherData.getLatitude()
-                 && carData.getLongitude() == weatherData.getLongitude()
+            if ( ( carData.getLatitude() == weatherData.getLatitude() )
+                 && ( carData.getLongitude() == weatherData.getLongitude() )
                  && carData.getDate().equals( weatherData.getDate() ) ) {
                 final String ddl = String.format( INSERT_STMT,
-                                                  toDdl( this.id++ ),
-                                                  toDdl( routeId ),
-                                                  toDdl( DATE_FORMATTER.format( carData.getDate() ) ),
-                                                  toDdl( carData.getLatitude() ),
-                                                  toDdl( carData.getLongitude() ),
-                                                  toDdl( carData.getBarometricPressure() ),
-                                                  toDdl( carData.getDistanceWithMil() ),
-                                                  toDdl( carData.getDriversLicNumber() ),
-                                                  toDdl( carData.getDtcCount() ),
-                                                  toDdl( carData.getEngineRunTime() ),
-                                                  toDdl( carData.getRpm() ),
-                                                  toDdl( carData.getSpeed() ),
-                                                  toDdl( carData.getThrottlePosition() ),
-                                                  toDdl( carData.getVin() ),
-                                                  toDdl( precipType ),
-                                                  toDdl( precipIntensity ),
-                                                  toDdl( windSpeed ) );
+                                                  DomainObjectStore.toDdl( this.id++ ),
+                                                  DomainObjectStore.toDdl( routeId ),
+                                                  DomainObjectStore.toDdl( DATE_FORMATTER.format( carData.getDate() ) ),
+                                                  DomainObjectStore.toDdl( carData.getLatitude() ),
+                                                  DomainObjectStore.toDdl( carData.getLongitude() ),
+                                                  DomainObjectStore.toDdl( carData.getBarometricPressure() ),
+                                                  DomainObjectStore.toDdl( carData.getDistanceWithMil() ),
+                                                  DomainObjectStore.toDdl( carData.getDriversLicNumber() ),
+                                                  DomainObjectStore.toDdl( carData.getDtcCount() ),
+                                                  DomainObjectStore.toDdl( carData.getEngineRunTime() ),
+                                                  DomainObjectStore.toDdl( carData.getRpm() ),
+                                                  DomainObjectStore.toDdl( carData.getSpeed() ),
+                                                  DomainObjectStore.toDdl( carData.getThrottlePosition() ),
+                                                  DomainObjectStore.toDdl( carData.getVin() ),
+                                                  DomainObjectStore.toDdl( precipType ),
+                                                  DomainObjectStore.toDdl( precipIntensity ),
+                                                  DomainObjectStore.toDdl( windSpeed ) );
                 return ddl;
             }
         }
@@ -167,7 +167,7 @@ public class TripDataStore implements DomainObjectStore {
             if ( ( route == null ) || ( routeId != route.getId() ) ) {
                 route = findRoute( routeId, carDataPoints.keySet() );
             }
-            
+
             final String tripDataDdl = createInsertDdl( weatherData, carDataPoints.get( route ) );
             ddl.append( tripDataDdl ).append( '\n' );
         }

@@ -19,8 +19,6 @@ public final class WeatherDataStore implements DomainObjectStore {
 
     }
 
-    private static final WeatherDataStore SHARED = new WeatherDataStore();
-
     private static final String TABLE_NAME = "WEATHER_DATA";
 
     private static final String COLUMNS = /* @formatter:off */
@@ -65,14 +63,14 @@ public final class WeatherDataStore implements DomainObjectStore {
 
         for ( final WeatherData data : weatherData ) {
             final String weatherDdl = String.format( INSERT_STMT,
-                                                     SHARED.toDdl( data.getId() ),
-                                                     SHARED.toDdl( data.getRouteId() ),
-                                                     SHARED.toDdl( data.getPrecipType().name() ),
-                                                     SHARED.toDdl( DATE_FORMATTER.format( data.getDate() ) ),
-                                                     SHARED.toDdl( data.getLatitude() ),
-                                                     SHARED.toDdl( data.getLongitude() ),
-                                                     SHARED.toDdl( data.getPrecipIntensity() ),
-                                                     SHARED.toDdl( data.getWindSpeed() ) );
+                                                     DomainObjectStore.toDdl( data.getId() ),
+                                                     DomainObjectStore.toDdl( data.getRouteId() ),
+                                                     DomainObjectStore.toDdl( data.getPrecipType().name() ),
+                                                     DomainObjectStore.toDdl( DATE_FORMATTER.format( data.getDate() ) ),
+                                                     DomainObjectStore.toDdl( data.getLatitude() ),
+                                                     DomainObjectStore.toDdl( data.getLongitude() ),
+                                                     DomainObjectStore.toDdl( data.getPrecipIntensity() ),
+                                                     DomainObjectStore.toDdl( data.getWindSpeed() ) );
             ddl.append( weatherDdl ).append( '\n' );
         }
 

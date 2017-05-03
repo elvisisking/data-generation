@@ -24,7 +24,7 @@ public final class DriverStore implements DomainObjectStore {
 
     private static final String TABLE_NAME = "DRIVER";
 
-    private static final String COLUMNS = /* @formatter:off */ 
+    private static final String COLUMNS = /* @formatter:off */
                                           '"' + Column.ID + "\", "
                                           + '"' + Column.FIRST_NAME + "\", "
                                           + '"' + Column.LAST_NAME + "\", "
@@ -57,10 +57,13 @@ public final class DriverStore implements DomainObjectStore {
                                               + "\" ( "
                                               + COLUMNS
                                               + ") VALUES ( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' );";
-    private static final DriverStore SHARED = new DriverStore();
 
     public static String getCreateTableStatement() {
         return CREATE_TABLE_STMT;
+    }
+
+    public static Object getDropTableStatement() {
+        return String.format( DROP_MYSQL_TABLE_STMT, TABLE_NAME );
     }
 
     public static String getInsertStatements( final Collection< Driver > drivers ) throws Exception {
@@ -69,25 +72,22 @@ public final class DriverStore implements DomainObjectStore {
 
         for ( final Driver driver : drivers ) {
             final Address address = driver.getAddress();
-            final String driverDdl = String.format( INSERT_STMT,
-                                                    SHARED.toDdl( driver.getId() ),
-                                                    SHARED.toDdl( driver.getFirstName() ),
-                                                    SHARED.toDdl( driver.getLastName() ),
-                                                    SHARED.toDdl( address.getLine1() ),
-                                                    SHARED.toDdl( address.getCity().getCity() ),
-                                                    SHARED.toDdl( address.getCity().getState().getAbbreviation() ),
-                                                    SHARED.toDdl( address.getCity().getPostalCode() ),
-                                                    SHARED.toDdl( driver.getPhone() ),
-                                                    SHARED.toDdl( driver.getLicenseNumber() ),
-                                                    SHARED.toDdl( driver.getVin() ) );
+            final String driverDdl = String
+                            .format( INSERT_STMT,
+                                     DomainObjectStore.toDdl( driver.getId() ),
+                                     DomainObjectStore.toDdl( driver.getFirstName() ),
+                                     DomainObjectStore.toDdl( driver.getLastName() ),
+                                     DomainObjectStore.toDdl( address.getLine1() ),
+                                     DomainObjectStore.toDdl( address.getCity().getCity() ),
+                                     DomainObjectStore.toDdl( address.getCity().getState().getAbbreviation() ),
+                                     DomainObjectStore.toDdl( address.getCity().getPostalCode() ),
+                                     DomainObjectStore.toDdl( driver.getPhone() ),
+                                     DomainObjectStore.toDdl( driver.getLicenseNumber() ),
+                                     DomainObjectStore.toDdl( driver.getVin() ) );
             ddl.append( driverDdl ).append( '\n' );
         }
 
         return ddl.toString();
-    }
-
-    public static Object getDropTableStatement() {
-        return String.format( DROP_MYSQL_TABLE_STMT, TABLE_NAME );
     }
 
     public static String getTableName() {

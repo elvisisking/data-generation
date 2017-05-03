@@ -9,11 +9,9 @@ import com.redhat.datagen.rdap.domain.State;
 
 public final class CityStore implements DomainObjectStore {
 
-    private static final CityStore SHARED = new CityStore();
-
     public static List< City > get( final String citiesFileName ) throws Exception {
         final List< City > cities = new ArrayList<>();
-        final List< String > lines = SHARED.load( citiesFileName );
+        final List< String > lines = DomainObjectStore.load( citiesFileName );
 
         for ( final String line : lines ) {
             final String tokens[] = line.split( "," );

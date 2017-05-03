@@ -97,14 +97,14 @@ public final class DriverHistoryStore implements DomainObjectStore {
             final TrafficViolation violation = getViolation( offense.getViolationId(), violations );
             final Driver driver = getDriver( offense.getDriverId(), drivers );
             final String historyDdl = String.format( INSERT_STMT,
-                                                     toDdl( this.nextId++ ),
-                                                     toDdl( offense.getDate() ),
-                                                     toDdl( driver.getFirstName() ),
-                                                     toDdl( driver.getLastName() ),
-                                                     toDdl( driver.getLicenseNumber() ),
-                                                     toDdl( driver.getVin() ),
-                                                     toDdl( violation.getDescription() ),
-                                                     toDdl( violation.getSeverity() ) );
+                                                     DomainObjectStore.toDdl( this.nextId++ ),
+                                                     DomainObjectStore.toDdl( offense.getDate() ),
+                                                     DomainObjectStore.toDdl( driver.getFirstName() ),
+                                                     DomainObjectStore.toDdl( driver.getLastName() ),
+                                                     DomainObjectStore.toDdl( driver.getLicenseNumber() ),
+                                                     DomainObjectStore.toDdl( driver.getVin() ),
+                                                     DomainObjectStore.toDdl( violation.getDescription() ),
+                                                     DomainObjectStore.toDdl( violation.getSeverity() ) );
             ddl.append( historyDdl ).append( '\n' );
         }
 

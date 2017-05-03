@@ -7,7 +7,7 @@ import com.redhat.datagen.rdap.domain.City;
 import com.redhat.datagen.rdap.domain.TrafficViolation;
 import com.redhat.datagen.rdap.store.AreaCodeStore;
 import com.redhat.datagen.rdap.store.CityStore;
-import com.redhat.datagen.rdap.store.ItemStore;
+import com.redhat.datagen.rdap.store.DomainObjectStore;
 import com.redhat.datagen.rdap.store.TrafficViolationStore;
 
 public final class RdapDataProvider {
@@ -50,7 +50,7 @@ public final class RdapDataProvider {
 
     public static List< String > getFemaleNames() throws Exception {
         if ( _femaleNames == null ) {
-            _femaleNames = ItemStore.getItems( FEMALE_NAMES_FILE );
+            _femaleNames = DomainObjectStore.load( FEMALE_NAMES_FILE );
         }
 
         return _femaleNames;
@@ -58,7 +58,7 @@ public final class RdapDataProvider {
 
     public static List< String > getLastNames() throws Exception {
         if ( _lastNames == null ) {
-            _lastNames = ItemStore.getItems( LAST_NAMES_FILE );
+            _lastNames = DomainObjectStore.load( LAST_NAMES_FILE );
         }
 
         return _lastNames;
@@ -66,7 +66,7 @@ public final class RdapDataProvider {
 
     public static List< String > getMaleNames() throws Exception {
         if ( _maleNames == null ) {
-            _maleNames = ItemStore.getItems( MALE_NAMES_FILE );
+            _maleNames = DomainObjectStore.load( MALE_NAMES_FILE );
         }
 
         return _maleNames;
@@ -74,7 +74,7 @@ public final class RdapDataProvider {
 
     public static List< String > getStreets() throws Exception {
         if ( _streets == null ) {
-            _streets = ItemStore.getItems( STREETS_FILE );
+            _streets = DomainObjectStore.load( STREETS_FILE );
         }
 
         return _streets;
@@ -82,7 +82,7 @@ public final class RdapDataProvider {
 
     public static List< String > getStreetSuffixes() throws Exception {
         if ( _streetSuffixes == null ) {
-            _streetSuffixes = ItemStore.getItems( STREET_SUFFIXES_FILE );
+            _streetSuffixes = DomainObjectStore.load( STREET_SUFFIXES_FILE );
         }
 
         return _streetSuffixes;

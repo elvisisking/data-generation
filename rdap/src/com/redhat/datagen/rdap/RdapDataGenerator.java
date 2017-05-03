@@ -40,10 +40,49 @@ import com.redhat.datagen.util.RandomGenerator;
 
 public final class RdapDataGenerator {
 
-    private static final String[] BART = new String[] { "Bart", "Simpson" };
-    private static final String[] LISA = new String[] { "Lisa", BART[ 1 ] };
+    private enum KnownDriver {
+       
+        BART( "Bart", "Simpson", "B33216654998766" ),
+        LISA(  "Lisa", BART.getLastName(), "L11234456778966" );
+        
+        public static KnownDriver getKnownDriver( final String driversLicense ) {
+            if ( BART.getDriversLicense().equals( driversLicense ) ) {
+                return BART;
+            }
 
-    private static final String CAR_DATA_FILE_PREFIX = "OBD-";
+            if ( LISA.getDriversLicense().equals( driversLicense ) ) {
+                return LISA;
+            }
+            
+            return null;
+        }
+    
+        private final String driversLicense;
+        private final String firstName;
+        private final String lastName;
+
+        private KnownDriver( final String firstName,
+                             final String lastName,
+                             final String driversLicense ) {
+            this.driversLicense = driversLicense;
+            this.firstName = firstName;
+            this.lastName = lastName;
+        }
+
+        public String getDriversLicense() {
+            return this.driversLicense;
+        }
+
+        public String getFirstName() {
+            return this.firstName;
+        }
+
+        public String getLastName() {
+            return this.lastName;
+        }
+
+    }
+
     private static final String CAR_DATA_FILE_EXT = ".txt";
     private static final String GENERATED_FILES_FOLDER = "generated/";
     private static final String ROUTES_OUTPUT_FILE = GENERATED_FILES_FOLDER + "routes.ddl";
@@ -303,14 +342,34 @@ public final class RdapDataGenerator {
             return this.drivers.get( driversLicense );
         }
 
-        final String firstName = nextFirstName();
-        String lastName = nextLastName();
-
-        // make sure there is not an already first name/last name combination
-        while ( this.usedNames.containsKey( firstName ) && this.usedNames.get( firstName ).contains( lastName ) ) {
+        String firstName = null;
+        String lastName = null;
+        final KnownDriver known = KnownDriver.getKnownDriver( driversLicense );
+        
+        if ( known == null ) {
+            firstName = nextFirstName();
             lastName = nextLastName();
+
+            // make sure there is not an already first name/last name combination
+            while ( this.usedNames.containsKey( firstName ) && this.usedNames.get( firstName ).contains( lastName ) ) {
+                lastName = nextLastName();
+            }
+        } else {
+            firstName = known.getFirstName();
+            lastName = known.getLastName();
         }
 
+        { // save off first/last name combination
+            List< String > names = this.usedNames.get( firstName );
+
+            if ( names == null ) {
+                names = new ArrayList<>();
+                this.usedNames.put( firstName, names );
+            }
+            
+            names.add( lastName );
+        }
+        
         // make sure line1 has not been used
         String line1 = nextAddressLine1();
 
@@ -424,32 +483,22 @@ public final class RdapDataGenerator {
     }
 
     private String nextFirstName() throws Exception {
-        if ( this.drivers.isEmpty() ) {
-            return BART[ 0 ];
-        }
-
-        if ( this.drivers.size() == 1 ) {
-            return LISA[ 0 ];
-        }
-
         return this.random.next( this.random.next() ? RdapDataProvider.getMaleNames()
                                                     : RdapDataProvider.getFemaleNames() );
     }
 
     private String nextLastName() throws Exception {
-        if ( this.drivers.size() < 3 ) {
-            return BART[ 1 ];
-        }
-
         return this.random.next( RdapDataProvider.getLastNames() );
     }
 
     private int nextNumberOfDriverOffenses( final Driver driver ) {
-        if ( BART[ 0 ].equals( driver.getFirstName() ) && BART[ 1 ].equals( driver.getLastName() ) ) {
+        if ( KnownDriver.BART.getFirstName().equals( driver.getFirstName() ) 
+             && KnownDriver.BART.getLastName().equals( driver.getLastName() ) ) {
             return this.numBartOffenses;
         }
 
-        if ( LISA[ 0 ].equals( driver.getFirstName() ) && LISA[ 1 ].equals( driver.getLastName() ) ) {
+        if ( KnownDriver.LISA.getFirstName().equals( driver.getFirstName() ) 
+             && KnownDriver.LISA.getLastName().equals( driver.getLastName() ) ) {
             return this.numLisaOffenses;
         }
 
@@ -492,10 +541,9 @@ public final class RdapDataGenerator {
                 final long start = System.currentTimeMillis();
                 final File carDataFile = path.toFile();
                 final String fileName = carDataFile.getName();
-                System.out.print( "\t- car data file '" + carDataFile.getName() + "': " );
+                System.out.print( "\t- car data file '" + fileName + "': " );
 
-                final String name = fileName.substring( CAR_DATA_FILE_PREFIX.length(),
-                                                        ( fileName.length() - CAR_DATA_FILE_EXT.length() ) );
+                final String name = fileName.substring( 0, fileName.length() - CAR_DATA_FILE_EXT.length() );
                 final List< CarData > carData = this.carDataStore.getCarData( carDataFile );
                 System.out.print( "created car data" );
 

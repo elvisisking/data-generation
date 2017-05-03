@@ -67,8 +67,6 @@ public final class TrafficViolationStore implements DomainObjectStore {
 
     }
 
-    private static final TrafficViolationStore SHARED = new TrafficViolationStore();
-
     private static final String TABLE_NAME = "TRAFFIC_VIOLATION";
 
     private static final String COLUMNS = /* @formatter:off */
@@ -127,9 +125,9 @@ public final class TrafficViolationStore implements DomainObjectStore {
 
         for ( final TrafficViolation violation : violations ) {
             final String insert = String.format( INSERT_STMT,
-                                                 SHARED.toDdl( violation.getId() ),
-                                                 SHARED.toDdl( violation.getDescription() ),
-                                                 SHARED.toDdl( violation.getSeverity() ) );
+                                                 DomainObjectStore.toDdl( violation.getId() ),
+                                                 DomainObjectStore.toDdl( violation.getDescription() ),
+                                                 DomainObjectStore.toDdl( violation.getSeverity() ) );
             ddl.append( insert ).append( '\n' );
         }
 

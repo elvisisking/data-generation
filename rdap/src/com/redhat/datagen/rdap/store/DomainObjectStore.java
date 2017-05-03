@@ -19,9 +19,9 @@ public interface DomainObjectStore {
 
     String DROP_MYSQL_TABLE_STMT = "DROP TABLE IF EXISTS %s CASCADE;";
     String DROP_POSTGRES_TABLE_STMT = "DROP TABLE IF EXISTS \"%s\" CASCADE;";
-    SimpleDateFormat DATE_FORMATTER = new SimpleDateFormat( "yyyy-MM-dd HH:mm:ss.SSS" );
+    SimpleDateFormat DATE_FORMATTER = new SimpleDateFormat( "yyyy-MM-dd HH:mm:ss" );
 
-    default List< String > load( final String fileName ) throws Exception {
+    static List< String > load( final String fileName ) throws Exception {
         final String inputFileName = ( fileName );
         final List< String > result = new ArrayList<>();
         final Path input = Paths.get( inputFileName );
@@ -34,7 +34,7 @@ public interface DomainObjectStore {
         return Collections.unmodifiableList( result );
     }
 
-    default Object toDdl( final Object value ) {
+    static Object toDdl( final Object value ) {
         if ( ( value == null ) || !( value instanceof String ) ) {
             return value;
         }

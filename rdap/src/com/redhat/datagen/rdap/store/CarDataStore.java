@@ -84,7 +84,7 @@ public final class CarDataStore implements DomainObjectStore {
                                                           + "\t" + Column.RPM + " INT NOT NULL,\n"
                                                           + "\t" + Column.SPEED + " DECIMAL NOT NULL,\n"
                                                           + "\t" + Column.THROTTLE_POSITION + " DECIMAL NOT NULL,\n"
-                                                          + "\tFOREIGN KEY ( ROUTE_FK ) REFERENCES "
+                                                          + "\tFOREIGN KEY ( " + Column.ROUTE_ID + " ) REFERENCES "
                                                           + RouteStore.getTableName()
                                                           + " ( " + RouteStore.Column.ID + " )\n"
                                                           + ");"; // @formatter:on
@@ -93,7 +93,7 @@ public final class CarDataStore implements DomainObjectStore {
                                                     + TABLE_NAME
                                                     + " ( "
                                                     + MYSQL_COLUMNS
-                                                    + " ) VALUES ( %s, %s, '%s' %s, %s, %s %s, %s, %s %s, %s, %s );";
+                                                    + " ) VALUES ( %s, %s, '%s', %s, %s, %s, %s, %s, %s, %s, %s, %s );";
 
     private static final String POSTGRES_COLUMNS = /* @formatter:off */
                                                    '"' + Column.ID + "\", "
@@ -241,18 +241,18 @@ public final class CarDataStore implements DomainObjectStore {
 
             for ( final CarData data : entry.getValue() ) {
                 final String insert = String.format( insertFormatPattern,
-                                                     toDdl( data.getId() ),
-                                                     toDdl( routeId ),
-                                                     toDdl( data.getDate() ),
-                                                     toDdl( data.getLatitude() ),
-                                                     toDdl( data.getLongitude() ),
-                                                     toDdl( data.getBarometricPressure() ),
-                                                     toDdl( data.getDistanceWithMil() ),
-                                                     toDdl( data.getDtcCount() ),
-                                                     toDdl( data.getEngineRunTime() ),
-                                                     toDdl( data.getRpm() ),
-                                                     toDdl( data.getSpeed() ),
-                                                     toDdl( data.getThrottlePosition() ) );
+                                                     DomainObjectStore.toDdl( data.getId() ),
+                                                     DomainObjectStore.toDdl( routeId ),
+                                                     DomainObjectStore.toDdl( data.getDate() ),
+                                                     DomainObjectStore.toDdl( data.getLatitude() ),
+                                                     DomainObjectStore.toDdl( data.getLongitude() ),
+                                                     DomainObjectStore.toDdl( data.getBarometricPressure() ),
+                                                     DomainObjectStore.toDdl( data.getDistanceWithMil() ),
+                                                     DomainObjectStore.toDdl( data.getDtcCount() ),
+                                                     DomainObjectStore.toDdl( data.getEngineRunTime() ),
+                                                     DomainObjectStore.toDdl( data.getRpm() ),
+                                                     DomainObjectStore.toDdl( data.getSpeed() ),
+                                                     DomainObjectStore.toDdl( data.getThrottlePosition() ) );
                 ddl.append( insert ).append( '\n' );
             }
         }
