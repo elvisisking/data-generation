@@ -37,8 +37,8 @@ public final class WeatherDataStore implements DomainObjectStore {
                                                     + "\t" + Column.ROUTE_ID + " INT NOT NULL,\n"
                                                     + "\t" + Column.PRECIP_TYPE + " VARCHAR(10) NOT NULL,\n"
                                                     + "\t" + Column.TIMESTAMP + " DATE NOT NULL,\n"
-                                                    + "\t" + Column.LATITUDE + " DECIMAL NOT NULL,\n"
-                                                    + "\t" + Column.LONGITUDE + " DECIMAL NOT NULL,\n"
+                                                    + "\t" + Column.LATITUDE + " DECIMAL(18,15) NOT NULL,\n"
+                                                    + "\t" + Column.LONGITUDE + " DECIMAL(18,15) NOT NULL,\n"
                                                     + "\t" + Column.PRECIP_INTENSITY + " DECIMAL(4,2) NOT NULL,\n"
                                                     + "\t" + Column.WIND_SPEED + " INT NOT NULL\n"
                                                     + ");"; // @formatter:on
@@ -66,7 +66,7 @@ public final class WeatherDataStore implements DomainObjectStore {
                                                      DomainObjectStore.toDdl( data.getId() ),
                                                      DomainObjectStore.toDdl( data.getRouteId() ),
                                                      DomainObjectStore.toDdl( data.getPrecipType().name() ),
-                                                     DomainObjectStore.toDdl( DATE_FORMATTER.format( data.getDate() ) ),
+                                                     DomainObjectStore.toDdl( data.getDate() ),
                                                      DomainObjectStore.toDdl( data.getLatitude() ),
                                                      DomainObjectStore.toDdl( data.getLongitude() ),
                                                      DomainObjectStore.toDdl( data.getPrecipIntensity() ),

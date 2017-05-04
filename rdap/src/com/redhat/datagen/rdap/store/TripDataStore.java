@@ -63,16 +63,16 @@ public class TripDataStore implements DomainObjectStore {
                                                     + "\t" + Column.ID + " INT NOT NULL PRIMARY KEY,\n"
                                                     + "\t" + Column.ROUTE_ID + " INT NOT NULL,\n"
                                                     + "\t" + Column.TIMESTAMP + " DATE NOT NULL,\n"
-                                                    + "\t" + Column.LATITUDE + " DECIMAL NOT NULL,\n"
-                                                    + "\t" + Column.LONGITUDE + " DECIMAL NOT NULL,\n"
-                                                    + "\t" + Column.BAROMETRIC_PRESSURE + " DECIMAL NOT NULL,\n"
-                                                    + "\t" + Column.DISTANCE_WITH_MIL + " DECIMAL NOT NULL,\n"
+                                                    + "\t" + Column.LATITUDE + " DECIMAL(18,15) NOT NULL,\n"
+                                                    + "\t" + Column.LONGITUDE + " DECIMAL(18,15) NOT NULL,\n"
+                                                    + "\t" + Column.BAROMETRIC_PRESSURE + " DECIMAL(8,6) NOT NULL,\n"
+                                                    + "\t" + Column.DISTANCE_WITH_MIL + " DECIMAL(4,2) NOT NULL,\n"
                                                     + "\t" + Column.DRIVERS_LICENSE_NUMBER + " VARCHAR(50) NOT NULL,\n"
                                                     + "\t" + Column.DTC_COUNT + " INT NOT NULL,\n"
                                                     + "\t" + Column.ENGINE_RUN_TIME + " INT NOT NULL,\n"
                                                     + "\t" + Column.RPM + " INT NOT NULL,\n"
-                                                    + "\t" + Column.SPEED + " DECIMAL NOT NULL,\n"
-                                                    + "\t" + Column.THROTTLE_POSITION + " DECIMAL NOT NULL,\n"
+                                                    + "\t" + Column.SPEED + " DECIMAL(10,7) NOT NULL,\n"
+                                                    + "\t" + Column.THROTTLE_POSITION + " DECIMAL(8,6) NOT NULL,\n"
                                                     + "\t" + Column.VIN + " VARCHAR(50) NOT NULL,\n"
                                                     + "\t" + Column.PRECIP_TYPE + " VARCHAR(10) NOT NULL,\n"
                                                     + "\t" + Column.PRECIP_INTENSITY + " DECIMAL(4,2) NOT NULL,\n"
@@ -119,7 +119,7 @@ public class TripDataStore implements DomainObjectStore {
                 final String ddl = String.format( INSERT_STMT,
                                                   DomainObjectStore.toDdl( this.id++ ),
                                                   DomainObjectStore.toDdl( routeId ),
-                                                  DomainObjectStore.toDdl( DATE_FORMATTER.format( carData.getDate() ) ),
+                                                  DomainObjectStore.toDdl( carData.getDate() ),
                                                   DomainObjectStore.toDdl( carData.getLatitude() ),
                                                   DomainObjectStore.toDdl( carData.getLongitude() ),
                                                   DomainObjectStore.toDdl( carData.getBarometricPressure() ),

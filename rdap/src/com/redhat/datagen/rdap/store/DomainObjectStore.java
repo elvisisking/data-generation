@@ -3,6 +3,7 @@ package com.redhat.datagen.rdap.store;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,11 +36,19 @@ public interface DomainObjectStore {
     }
 
     static Object toDdl( final Object value ) {
-        if ( ( value == null ) || !( value instanceof String ) ) {
+        if ( value == null ) {
+            throw new RuntimeException( "Unable to convert null to DDL value" );
+        }
+
+        if ( value instanceof Timestamp ) {
+            return DATE_FORMATTER.format( ( ( Timestamp )value ).getTime() );
+        }
+
+        if ( !( value instanceof String ) ) {
             return value;
         }
 
-        return ( ( String ) value ).replace( "'", "''" ); // escape any single quotes
+        return ( ( String )value ).replace( "'", "''" ); // escape any single quotes
     }
 
 }
